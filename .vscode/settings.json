@@ -1,5 +1,6 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
   "idf.extensionActivationMode": "always",
   "idf.openOcdConfigs": [
     "board/esp32-wrover-kit-3.3v.cfg"
@@ -13,7 +14,7 @@
   "clangd.arguments": [
     "--background-index",
     "--query-driver=**",
-    "--compile-commands-dir=d:\\Embedded_Projects\\ESP32 WROOM 32\\test_esp_idf_projects\\mini_industrial_iot_gateway_simulator\\build"
+    "--compile-commands-dir=${workspaceFolder}/build"
   ],
   "idf.flashType": "UART"
 }

@@ -1,3 +1,11 @@
+/* ****************************************************************************
+* Author    : Huwairis Ibnu Kabeer
+* Company   : MrRISSU
+* email     : huwairisibnukabeer777@gmail.com
+* Mob No    : +91-9447504259
+* File name : main.cpp
+* ****************************************************************************/
+
 #pragma once
 #include "SensorSimulatorBase.hpp"
 

@@ -30,6 +30,11 @@ void TemperatureSimulator::reset()
     m_current_temperature = 25.0f;
 }
 
+float TemperatureSimulator::read()
+{
+    return m_current_temperature;
+}
+
 void TemperatureSimulator::generateNextSample()
 {
     // Add some random walk noise to the temperature

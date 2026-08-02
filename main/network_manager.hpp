@@ -19,7 +19,7 @@ public:
     ~NetworkManager();
 
     // Initializes the network stack. Call this inside app_main().
-    bool init();
+    bool Initialize();
 
     // Connects to the specified Access Point
     void connect(const std::string& ssid, const std::string& password);

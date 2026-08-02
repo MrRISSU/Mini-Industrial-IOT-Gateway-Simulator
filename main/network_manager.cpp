@@ -23,7 +23,7 @@ NetworkManager::~NetworkManager()
     esp_wifi_deinit();
 }
 
-bool NetworkManager::init()
+bool NetworkManager::Initialize()
 {
     // Initialize the underlying TCP/IP stack
     esp_err_t ret = esp_netif_init();

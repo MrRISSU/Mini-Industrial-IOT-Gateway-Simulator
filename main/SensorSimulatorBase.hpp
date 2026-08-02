@@ -26,6 +26,7 @@ public:
     // Core Lifecycle Interface Methods
     virtual bool initialize() = 0;
     virtual void reset() = 0;
+    virtual float read() = 0;
 
     // Starts background updates using native ESP-IDF FreeRTOS tasks
     bool startSimulation(uint32_t periodMs, uint32_t taskPriority = 5);

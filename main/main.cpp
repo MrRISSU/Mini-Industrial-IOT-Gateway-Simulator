@@ -6,11 +6,16 @@
 * File name : main.cpp
 * ****************************************************************************/
 
-#include "network_manager.hpp"
 #include "TempSensorSimulator.hpp"
+#include "TagsRegister.hpp"
+#include "network_manager.hpp"
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "nvs_flash.h"
+#include "esp_log.h"
+
+static const char* TAG = "main";
 
 
 extern "C" void app_main()
@@ -26,7 +31,9 @@ extern "C" void app_main()
 
     TemperatureSimulator engineTemp("Engine_Temp_1");
 
-    if (WiFi.init())
+    TagsRegistry tagsRegistry;
+
+    if (WiFi.Initialize())
     {
         WiFi.connect("Technet", "Technet@23");
     }
@@ -37,9 +44,17 @@ extern "C" void app_main()
         engineTemp.startSimulation(1000, 5); 
     }
 
+    tagsRegistry.Initialize(50);
+
     // Main task can now go to sleep or do other things
     while (true)
     {
+        float temp = engineTemp.read();
+        tagsRegistry.Write<float>("temperature", temp);
+        temp = tagsRegistry.Read<float>("temperature");
+        ESP_LOGI(TAG, "temperature: %.3f\r\n", temp);
         vTaskDelay(pdMS_TO_TICKS(10000));
     }
 }
+
+

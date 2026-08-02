@@ -17,6 +17,7 @@ public:
 
     bool initialize() override;
     void reset() override;
+    float read() override;
 
 protected:
     void generateNextSample() override;

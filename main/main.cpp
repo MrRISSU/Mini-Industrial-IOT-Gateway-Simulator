@@ -1,19 +1,24 @@
-/* ****************************************************************************
-* Author    : Huwairis Ibnu Kabeer
-* Company   : MrRISSU
-* email     : huwairisibnukabeer777@gmail.com
-* Mob No    : +91-9447504259
-* File name : main.cpp
-* ****************************************************************************/
+/******************************************************************************
+ * @file main.cpp
+ * @brief Mini Industrial IoT Gateway
+ *
+ * Author : Huwairis Ibnu Kabeer
+ * License: MIT
+ ******************************************************************************/
 
-#include "TempSensorSimulator.hpp"
-#include "TagsRegister.hpp"
-#include "network_manager.hpp"
+#include "nvs_flash.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "nvs_flash.h"
+
 #include "esp_log.h"
+
+#include "DeviceSimulator.hpp"
+#include "sample_conf.hpp"
+
+#include "TagsRegister.hpp"
+
+#include "network_manager.hpp"
 
 static const char* TAG = "main";
 
@@ -27,32 +32,32 @@ extern "C" void app_main()
     }
     ESP_ERROR_CHECK(ret);
 
+
+
+    // Initialise WIFI (Task runs on CORE - 0)
     NetworkManager WiFi;
-
-    TemperatureSimulator engineTemp("Engine_Temp_1");
-
-    TagsRegistry tagsRegistry;
-
     if (WiFi.Initialize())
     {
         WiFi.connect("Technet", "Technet@23");
     }
+    
 
-    if (engineTemp.initialize())
-    {
-        // Run at 1000ms intervals with priority 5
-        engineTemp.startSimulation(1000, 5); 
-    }
 
+    // Initialise Tag Registry
+    TagsRegistry tagsRegistry;
     tagsRegistry.Initialize(50);
+
+
+
+    // Initialise Device Simulators (Task runs on CORE - 1)
+    DeviceSimulator EnergyMeter;
+    EnergyMeter.Initialise(EnergyMeterConf, tagsRegistry);
+    DeviceSimulator DHT20;
+    DHT20.Initialise(DHT20Conf, tagsRegistry);
 
     // Main task can now go to sleep or do other things
     while (true)
     {
-        float temp = engineTemp.read();
-        tagsRegistry.Write<float>("temperature", temp);
-        temp = tagsRegistry.Read<float>("temperature");
-        ESP_LOGI(TAG, "temperature: %.3f\r\n", temp);
         vTaskDelay(pdMS_TO_TICKS(10000));
     }
 }

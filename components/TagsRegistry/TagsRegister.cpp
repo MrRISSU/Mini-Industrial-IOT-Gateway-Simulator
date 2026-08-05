@@ -1,15 +1,40 @@
-/* ****************************************************************************
-* Author    : Huwairis Ibnu Kabeer
-* Company   : MrRISSU
-* email     : huwairisibnukabeer777@gmail.com
-* Mob No    : +91-9447504259
-* File name : TagsRegister.cpp
-* ****************************************************************************/
+/******************************************************************************
+ * @file TagsRegister.hpp
+ * @brief A thread-safe, centralized registry for dynamic storage and retrieval of IoT tag values, deltas, and timestamps.
+ *
+ * Author : Huwairis Ibnu Kabeer
+ * License: MIT
+ ******************************************************************************/
+
+/*==========================================================================*/
+/* Includes                                                                 */
+/*==========================================================================*/
 
 #include "TagsRegister.hpp"
 #include "esp_log.h"
 
+/*==========================================================================*/
+/* Macros                                                                   */
+/*==========================================================================*/
+
+/*==========================================================================*/
+/* Static Variables                                                         */
+/*==========================================================================*/
+
 static const char* TAG = "TagRegistry";
+
+/*==========================================================================*/
+/* Static Configuration / Lookup Tables                                     */
+/*==========================================================================*/
+
+/*==========================================================================*/
+/* Static Helper Functions                                                  */
+/*==========================================================================*/
+
+/*==========================================================================*/
+/* Public Member Functions                                                  */
+/*==========================================================================*/
+
 TagsRegistry::TagsRegistry() : tagsRegistryMutex(nullptr)
 {
 }
@@ -40,50 +65,6 @@ int TagsRegistry :: Initialize(size_t tagsMax)
         return -2;
     }
     return 0;
-}
-
-int TagsRegistry :: FindRegister(const char* name)
-{
-    for (int index = 0; index < tagRegisterSize; index++)
-    {
-        if (strcmp(tagRegister[index].name, name) == 0)
-        {
-            return index;
-        }
-    }
-    return -1;
-}
-
-int TagsRegistry :: FindFreeRegister()
-{
-    for (int index = 0; index < tagRegisterSize; index++)
-    {
-        if (tagRegister[index].name[0] == '\0')
-        {
-            return index;
-        }
-    }
-    return -1;
-}
-
-int TagsRegistry :: GetRegisterIndex(const char* name)
-{
-    if (tagRegister == nullptr || name == nullptr)
-    {
-        return -1;
-    }
-
-    int index = FindRegister(name);
-    if (index == -1)
-    {
-        index = FindFreeRegister();
-        if (index == -1)
-        {
-            ESP_LOGE(TAG, "No Free Tag Register\r\n");
-            return -1;
-        }
-    }
-    return index;
 }
 
 template <typename T> 
@@ -323,3 +304,51 @@ template int32_t TagsRegistry::Read<int32_t>(const char*);
 template uint32_t TagsRegistry::Read<uint32_t>(const char*);
 template float TagsRegistry::Read<float>(const char*);
 template double TagsRegistry::Read<double>(const char*);
+
+/*==========================================================================*/
+/* Private Member Functions                                                 */
+/*==========================================================================*/
+
+int TagsRegistry :: FindRegister(const char* name)
+{
+    for (int index = 0; index < tagRegisterSize; index++)
+    {
+        if (strcmp(tagRegister[index].name, name) == 0)
+        {
+            return index;
+        }
+    }
+    return -1;
+}
+
+int TagsRegistry :: FindFreeRegister()
+{
+    for (int index = 0; index < tagRegisterSize; index++)
+    {
+        if (tagRegister[index].name[0] == '\0')
+        {
+            return index;
+        }
+    }
+    return -1;
+}
+
+int TagsRegistry :: GetRegisterIndex(const char* name)
+{
+    if (tagRegister == nullptr || name == nullptr)
+    {
+        return -1;
+    }
+
+    int index = FindRegister(name);
+    if (index == -1)
+    {
+        index = FindFreeRegister();
+        if (index == -1)
+        {
+            ESP_LOGE(TAG, "No Free Tag Register\r\n");
+            return -1;
+        }
+    }
+    return index;
+}

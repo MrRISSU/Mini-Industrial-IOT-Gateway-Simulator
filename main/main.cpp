@@ -55,6 +55,8 @@ extern "C" void app_main()
     DeviceSimulator DHT20;
     DHT20.Initialise(DHT20Conf, tagsRegistry);
 
+
+
     // Main task can now go to sleep or do other things
     while (true)
     {

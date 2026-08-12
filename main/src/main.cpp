@@ -6,20 +6,6 @@
  * License: MIT
  ******************************************************************************/
 
-#include "nvs_flash.h"
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-
-#include "esp_log.h"
-
-#include "DeviceSimulator.hpp"
-#include "sample_conf.hpp"
-
-#include "TagsRegister.hpp"
-
-#include "network_manager.hpp"
-
 static const char* TAG = "main";
 
 

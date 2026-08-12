@@ -1,82 +1,39 @@
 /******************************************************************************
- * @file TagsRegister.hpp
- * @brief A thread-safe, centralized registry for dynamic storage and retrieval of IoT tag values, deltas, and timestamps.
+ * @file    TcpTransport.hpp
+ * @brief   Plain TCP transport implementation using the ESP-IDF transport layer.
+ *
+ * Provides a TCP-based implementation of the Transport interface and shared
+ * transport operations for TCP-derived transports.
  *
  * Author : Huwairis Ibnu Kabeer
  * License: MIT
  ******************************************************************************/
 
-#ifndef TAGS_REGISTER_HPP
-#define TAGS_REGISTER_HPP
+#pragma once
 
 /*==========================================================================*/
 /* Includes                                                                 */
 /*==========================================================================*/
 
-#include <type_traits>
-#include <new>
-#include <stdint.h>
-#include <sys/types.h>
-#include <time.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#include "Transport.hpp"
+#include "esp_transport.h"
+#include "transport_tcp.h"
 
 /*==========================================================================*/
 /* Macros                                                                   */
 /*==========================================================================*/
 
-#define SIZE_TAG_NAME  20
-
 /*==========================================================================*/
 /* Enumerations                                                             */
 /*==========================================================================*/
-
-typedef enum __attribute__((packed)) DataType
-{
-    TYPE_EMPTY,
-    TYPE_I8,   TYPE_UI8,
-    TYPE_I16,  TYPE_UI16,
-    TYPE_I32,  TYPE_UI32, TYPE_F32,
-    TYPE_I64,  TYPE_UI64, TYPE_F64
-} dataType_t;
-
-typedef enum __attribute__((packed)) Endian
-{
-    BE, // BIG_ENDIAN
-    LE, // LITTLE_ENDIAN
-    BEBS, // BIG_ENDIAN_BYTE_SWAP
-    LEBS // LITTLE_ENDIAN_BYTE_SWAP
-} endian_t;
 
 /*==========================================================================*/
 /* Structures                                                               */
 /*==========================================================================*/
 
-typedef struct Value
-{
-    // Tracks what is currently stored
-    dataType_t type;
-    // Anonymous union makes syntax cleaner (no extra dot needed)
-    union {
-        int8_t   i8;   uint8_t  ui8;
-        int16_t  i16;  uint16_t ui16;
-        int32_t  i32;  uint32_t ui32; float f32;
-        int64_t  i64;  uint64_t ui64; double f64;
-    };
-} value_t;
-
-
-typedef struct Tag
-{
-    char name[SIZE_TAG_NAME];
-    value_t value;
-    endian_t endian;
-    // track change in value
-    // if delta is zero, it means there is no change
-    int delta;
-    // Time of value change
-    time_t time;
-}tag_t;
+/*==========================================================================*/
+/* Global Variables                                                         */
+/*==========================================================================*/
 
 /*==========================================================================*/
 /* Configuration / Lookup Tables                                            */
@@ -86,29 +43,29 @@ typedef struct Tag
 /* Classes                                                                  */
 /*==========================================================================*/
 
-class TagsRegistry
+/// @brief Unsecure TCP Transport Wrapper
+class TcpTransport : public Transport
 {
-private:
-    SemaphoreHandle_t tagsRegistryMutex;
-    tag_t* tagRegister;
-    size_t tagRegisterSize;
-
-    int FindRegister(const char* name);
-    int FindFreeRegister();
-    int GetRegisterIndex(const char* name);
-protected:
 public:
-    TagsRegistry();
-    ~TagsRegistry();
-    int Initialize(size_t tagsMax);
-    template <typename type>
-    bool Write(const char* name, type value);
-    template <typename type>
-    type Read(const char* name);
+    TcpTransport() = default;
+    ~TcpTransport() override;
+    
+    // Only handles the TCP-specific initialization
+    bool Initialise() override;
+    bool Destroy() override;
+    
+    // Shared logic for TCP and TLS
+    bool Connect(const char* host, std::uint16_t port, int timeout_ms) override;
+    void Disconnect() override;
+    int Read(std::uint8_t* buffer, std::size_t len, int timeout_ms) override;
+    int Write(const std::uint8_t* buffer, std::size_t len, int timeout_ms) override;
+
+protected:
+    esp_transport_list_handle_t transport_list;
+    esp_transport_handle_t      transport_handle;
 };
 
 /*==========================================================================*/
 /* Public API                                                               */
 /*==========================================================================*/
 
-#endif

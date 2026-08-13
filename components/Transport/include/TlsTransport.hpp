@@ -15,7 +15,7 @@
 /*==========================================================================*/
 
 #include "TcpTransport.hpp"
-#include "transport_ssl.h"
+#include "esp_transport_ssl.h"
 
 /*==========================================================================*/
 /* Macros                                                                   */
@@ -48,7 +48,7 @@ public:
     explicit TlsTransport();
     ~TlsTransport() override;
 
-    // Only handles the SSL-specific initialization
+    // Handles the SSL-specific certificate and initialization
     bool SetCert(const char* certPem);
     bool Initialise() override;
     bool Destroy() override;
@@ -61,4 +61,3 @@ private:
 /*==========================================================================*/
 /* Public API                                                               */
 /*==========================================================================*/
-

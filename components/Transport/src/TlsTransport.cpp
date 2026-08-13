@@ -15,6 +15,7 @@
 
 #include "TlsTransport.hpp"
 #include "esp_log.h"
+#include <cstring>
 
 /*==========================================================================*/
 /* Macros                                                                   */
@@ -38,7 +39,7 @@ static const char* TAG = "TlsTransport";
 /* Public Member Functions                                                  */
 /*==========================================================================*/
 
-TlsTransport::TlsTransport() : cert_pem(nullptr) 
+TlsTransport::TlsTransport()
 {
 
 }
@@ -51,7 +52,7 @@ TlsTransport::~TlsTransport()
 
 bool TlsTransport::SetCert(const char* certPem) 
 {
-    if (cert_pem == nullptr)
+    if (certPem == nullptr)
     {
         ESP_LOGE(TAG, "Certificate is Empty\r\n");
         return false;
@@ -75,7 +76,8 @@ bool TlsTransport::Initialise()
     if (cert_pem != nullptr)
     {
         // esp_transport_ssl_set_cert_data requires the string length of the PEM data
-        esp_transport_ssl_set_cert_data(transport_handle, cert_pem, std::strlen(cert_pem));
+        // We add +1 to include the null-terminator for the mbedTLS parser
+        esp_transport_ssl_set_cert_data(transport_handle, cert_pem, std::strlen(cert_pem) + 1);
     }
     else
     {
@@ -100,4 +102,3 @@ bool TlsTransport::Destroy()
 /*==========================================================================*/
 /* Private Member Functions                                                 */
 /*==========================================================================*/
-

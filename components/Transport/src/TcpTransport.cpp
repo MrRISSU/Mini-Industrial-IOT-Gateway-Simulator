@@ -38,14 +38,14 @@ static const char* TAG = "TcpTransport";
 /* Public Member Functions                                                  */
 /*==========================================================================*/
 
-TcpTransport::TcpTransport() : transport_list(nullptr),transport_handle(nullptr)
+TcpTransport::TcpTransport()
 {
 
 }
 
 TcpTransport::~TcpTransport()
 {
-
+    Destroy();
 }
 
 bool TcpTransport::Initialise()
@@ -121,7 +121,7 @@ int TcpTransport::Read(std::uint8_t* buffer, std::size_t len, int timeout_ms)
 
     // esp_transport_read handles the underlying poll()/select() logic 
     // to enforce your FreeRTOS timeout automatically. 
-    // We use reinterpret_cast because ESP-IDF expects a char*, but MQTT uses raw bytes.
+    // We use reinterpret_cast because ESP-IDF expects a char*, but some might use raw bytes.
     return esp_transport_read(transport_handle, reinterpret_cast<char*>(buffer), len, timeout_ms);
 }
 
@@ -135,11 +135,10 @@ int TcpTransport::Write(const std::uint8_t* buffer, std::size_t len, int timeout
 
     // esp_transport_write sends the payload over the active socket.
     // Like Read(), it manages the timeout if the TCP window is full and blocking.
-    // We use reinterpret_cast because ESP-IDF expects a char*, but MQTT uses raw bytes.
+    // We use reinterpret_cast because ESP-IDF expects a char*, but some might use raw bytes.
     return esp_transport_write(transport_handle, reinterpret_cast<const char*>(buffer), len, timeout_ms);
 }
 
 /*==========================================================================*/
 /* Private Member Functions                                                 */
 /*==========================================================================*/
-

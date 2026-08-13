@@ -28,6 +28,12 @@
 
 #include "WiFiManager.hpp"
 
+#include "TcpTransport.hpp"
+#include "TlsTransport.hpp"
+
+
+#include "TestTcpTls.hpp"
+
 /*==========================================================================*/
 /* Macros                                                                   */
 /*==========================================================================*/

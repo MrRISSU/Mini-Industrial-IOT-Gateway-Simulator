@@ -6,6 +6,9 @@
 # Directory metadata
 .directory
 
+# AI Agent files
+.agent/
+
 # Temporary files
 *~
 *.swp

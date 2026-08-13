@@ -17,7 +17,7 @@
 
 #include "Transport.hpp"
 #include "esp_transport.h"
-#include "transport_tcp.h"
+#include "esp_transport_tcp.h"
 
 /*==========================================================================*/
 /* Macros                                                                   */
@@ -47,7 +47,7 @@
 class TcpTransport : public Transport
 {
 public:
-    TcpTransport() = default;
+    TcpTransport();
     ~TcpTransport() override;
     
     // Only handles the TCP-specific initialization
@@ -61,11 +61,10 @@ public:
     int Write(const std::uint8_t* buffer, std::size_t len, int timeout_ms) override;
 
 protected:
-    esp_transport_list_handle_t transport_list;
-    esp_transport_handle_t      transport_handle;
+    esp_transport_list_handle_t transport_list = nullptr;
+    esp_transport_handle_t      transport_handle = nullptr;
 };
 
 /*==========================================================================*/
 /* Public API                                                               */
 /*==========================================================================*/
-

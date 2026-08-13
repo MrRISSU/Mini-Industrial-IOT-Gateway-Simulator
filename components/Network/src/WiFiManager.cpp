@@ -1,17 +1,17 @@
-/* ****************************************************************************
-* Author    : Huwairis Ibnu Kabeer
-* Company   : MrRISSU
-* email     : huwairisibnukabeer777@gmail.com
-* Mob No    : +91-9447504259
-* File name : network_manager.cpp
-* ****************************************************************************/
+/******************************************************************************
+ * @file    WiFiManager.cpp
+ * @brief   WiFi manager implementation for handling WiFi connectivity.
+ *
+ * Author : Huwairis Ibnu Kabeer
+ * License: MIT
+ ******************************************************************************/
 
-#include "network_manager.hpp"
+#include "WiFiManager.hpp"
 #include "esp_log.h"
 #include "esp_netif.h"
 #include <cstring>
 
-static const char* TAG = "NetworkManager";
+static const char* TAG = "WiFiManager";
 
 NetworkManager::NetworkManager() : instance_any_id(nullptr), instance_got_ip(nullptr)
 {

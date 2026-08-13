@@ -25,7 +25,7 @@
 /* Static Variables                                                         */
 /*==========================================================================*/
 
-static const char* TAG = "TlsTransport";
+static const char* TAG = "[TlsTransport]";
 
 /*==========================================================================*/
 /* Static Configuration / Lookup Tables                                     */

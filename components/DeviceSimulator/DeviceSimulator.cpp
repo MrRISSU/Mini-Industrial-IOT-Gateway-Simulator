@@ -19,7 +19,7 @@
 /* Static Variables                                                         */
 /*==========================================================================*/
 
-static const char* TAG = "DeviceSim";
+static const char* TAG = "[DeviceSim]";
 
 /*==========================================================================*/
 /* Public Member Functions                                                  */

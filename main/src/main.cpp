@@ -9,7 +9,7 @@
 #include "BuildSettings.hpp"
 #include "main.hpp"
 
-static const char* TAG = "main";
+static const char* TAG = "[main]";
 
 
 extern "C" void app_main()

@@ -21,7 +21,7 @@
 /* Static Variables                                                         */
 /*==========================================================================*/
 
-static const char* TAG = "TagRegistry";
+static const char* TAG = "[TagRegistry]";
 
 /*==========================================================================*/
 /* Static Configuration / Lookup Tables                                     */

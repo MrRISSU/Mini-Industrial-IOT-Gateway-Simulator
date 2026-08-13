@@ -11,7 +11,7 @@
 #include "esp_netif.h"
 #include <cstring>
 
-static const char* TAG = "WiFiManager";
+static const char* TAG = "[WiFiManager]";
 
 NetworkManager::NetworkManager() : instance_any_id(nullptr), instance_got_ip(nullptr)
 {

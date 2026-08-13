@@ -19,7 +19,7 @@
 /* Static Variables                                                         */
 /*==========================================================================*/
 
-static const char* TAG = "DeviceSim";
+static const char* TAG = "[DeviceSim]";
 
 /*==========================================================================*/
 /* Public Member Functions                                                  */
@@ -38,7 +38,7 @@ DeviceSimulator::~DeviceSimulator()
     Destroy();
 }
 
-bool DeviceSimulator::Initialise(DeviceSimulConf_t conf, TagsRegistry& registry)
+bool DeviceSimulator::Initialise(DeviceSimulConf_t& conf, TagsRegistry& registry)
 {
     if (m_is_running)
     {
@@ -46,11 +46,11 @@ bool DeviceSimulator::Initialise(DeviceSimulConf_t conf, TagsRegistry& registry)
     }
 
     // Store the configuration containing blocks and tags 
-    deviceSimulConf = conf;
+    deviceSimulConf = &conf;
     pTagsRegistry = &registry;
 
     // Verify if the device level simulation is enabled 
-    if (!deviceSimulConf.enable)
+    if (!deviceSimulConf->enable)
     {
         ESP_LOGW(TAG, "Simulator is disabled in configuration.");
         return false;
@@ -76,7 +76,7 @@ bool DeviceSimulator::Initialise(DeviceSimulConf_t conf, TagsRegistry& registry)
         return false;
     }
 
-    ESP_LOGI(TAG, "Device Simulator Initialised on Core 1 for: %s", deviceSimulConf.dscr);
+    ESP_LOGI(TAG, "Device Simulator Initialised on Core 1 for: %s", deviceSimulConf->dscr);
     return true;
 }
 
@@ -106,7 +106,7 @@ void DeviceSimulator::taskWorker(void* pvParameters)
     TickType_t last_wake_time = xTaskGetTickCount();
 
     // Assuming the interval provided in the struct is in seconds (e.g., 5s) 
-    const uint32_t interval_ms = instance->deviceSimulConf.interval * 1000;
+    const uint32_t interval_ms = instance->deviceSimulConf->interval * 1000;
 
     while (instance->m_is_running)
     {
@@ -123,17 +123,17 @@ void DeviceSimulator::taskWorker(void* pvParameters)
 
 void DeviceSimulator::processSimulation()
 {
-    ESP_LOGI(TAG, "--- Simulating Device: %s ---", deviceSimulConf.dscr);
+    ESP_LOGI(TAG, "--- Simulating Device: %s ---", deviceSimulConf->dscr);
 
     // Iterate through all configured blocks 
-    for (int b = 0; b < deviceSimulConf.blockCount; ++b)
+    for (int b = 0; b < deviceSimulConf->blockCount; ++b)
     {
         if (b >= MAX_BLOCKS)
         {
             break; 
         }
         
-        DeviceSimulBlock_t& block = deviceSimulConf.block[b];
+        DeviceSimulBlock_t& block = deviceSimulConf->block[b];
         
         // Skip disabled blocks
         if (!block.enable)

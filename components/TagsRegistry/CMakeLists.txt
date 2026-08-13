@@ -1,4 +1,4 @@
-idf_component_register (
-    SRCS "TagsRegister.cpp" "TagsRegister.hpp"
-    INCLUDE_DIRS "."
+idf_component_register(
+    SRC_DIRS "src"
+    INCLUDE_DIRS "include"
 )

@@ -21,7 +21,7 @@
 /* Static Variables                                                         */
 /*==========================================================================*/
 
-static const char* TAG = "TagRegistry";
+static const char* TAG = "[TagRegistry]";
 
 /*==========================================================================*/
 /* Static Configuration / Lookup Tables                                     */
@@ -304,6 +304,30 @@ template int32_t TagsRegistry::Read<int32_t>(const char*);
 template uint32_t TagsRegistry::Read<uint32_t>(const char*);
 template float TagsRegistry::Read<float>(const char*);
 template double TagsRegistry::Read<double>(const char*);
+
+bool TagsRegistry::Delete(const char* name)
+{
+    if (xSemaphoreTake(tagsRegistryMutex, portMAX_DELAY) == pdTRUE)
+    {
+        int index = FindRegister(name);
+        if (index < 0)
+        {
+            ESP_LOGW(TAG, "Tag not found for deletion: %s", name);
+            xSemaphoreGive(tagsRegistryMutex);
+            return false;
+        }
+
+        // Clear the tag entry
+        memset(&tagRegister[index], 0, sizeof(tag_t));
+        xSemaphoreGive(tagsRegistryMutex);
+        return true;
+    }
+    else
+    {
+        ESP_LOGE(TAG, "Failed to take mutex in Delete()");
+        return false;
+    }
+}
 
 /*==========================================================================*/
 /* Private Member Functions                                                 */

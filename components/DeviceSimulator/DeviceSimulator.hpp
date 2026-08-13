@@ -62,13 +62,13 @@ public:
     ~DeviceSimulator();
 
     // Initializes the simulator and spawns the task on Core 1
-    bool Initialise(DeviceSimulConf_t conf, TagsRegistry& registry);
+    bool Initialise(DeviceSimulConf_t& conf, TagsRegistry& registry);
     
     // Safely halts the simulation task
     void Destroy();
 
 private:
-    DeviceSimulConf_t deviceSimulConf;
+    DeviceSimulConf_t* deviceSimulConf;
     
     TaskHandle_t m_task_handle;
     bool m_is_running;

@@ -1,5 +1,5 @@
 idf_component_register(
-    SRCS "main.cpp"
-    INCLUDE_DIRS "."
-    REQUIRES nvs_flash "DeviceSimulator" "TagsRegistry" "Network"
+    SRC_DIRS "src"
+    INCLUDE_DIRS "include"
+    REQUIRES nvs_flash "DeviceSimulator" "TagsRegistry" "Network" "Transport" "MQTT"
 )

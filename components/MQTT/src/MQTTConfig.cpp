@@ -1,6 +1,6 @@
 /******************************************************************************
  * @file MQTTConfig.cpp
- * @brief
+ * @brief Global default configuration instance definition for MQTT 5.0.
  *
  * Author : Huwairis Ibnu Kabeer
  * License: MIT
@@ -23,18 +23,38 @@ namespace mqtt
 /* Configuration                                                            */
 /*==========================================================================*/
 
-// Global scope configuration instance with default values
-MQTTClientConf_t DefaultMQTTConf = 
+Config DefaultConf = 
 {
-    .dscr             = "ESP32_MQTT_Node",
-    .enable           = 1,
-    .broker_uri       = "mqtt://192.168.1.100",
-    .port             = 1883,
-    .keep_alive_sec   = 60,
-    .timeout_ms       = 5000,
-    .rx_task_priority = 5,
-    .tx_task_priority = 4,
-    .clean_session    = true
+    .description     = "ESP32_MQTT_Node",
+    .isEnabled       = true,
+    .brokerUri       = "mqtt://192.168.1.100",
+    .port            = 1883,
+    .keepAliveSec    = 60,
+    .timeoutMs       = 5000,
+    .rxTaskPriority  = 5,
+    .txTaskPriority  = 4,
+    .isCleanStart    = true,
+
+    .clientId        = {'E', 'S', 'P', '3', '2', '_', 'G', 'a', 't', 'e', 'w', 'a', 'y'},
+    .clientIdLen     = 13,
+
+    .username        = {},
+    .usernameLen     = 0,
+
+    .password        = {},
+    .passwordLen     = 0,
+
+    .defaultQos      = Qos::QoS0,
+
+    .hasWill         = false,
+    .willTopic       = {},
+    .willTopicLen    = 0,
+
+    .willPayload     = {},
+    .willPayloadLen  = 0,
+
+    .willQos         = Qos::QoS0,
+    .isWillRetain    = false
 };
 
 } // namespace mqtt

@@ -24,7 +24,7 @@ namespace mqtt {
 /* Enumerations                                                             */
 /*==========================================================================*/
 
-enum class MqttPacketType : std::uint8_t
+enum class PacketType : std::uint8_t
 {
     // --- Connection Handling ---
     CONNECT     = 1,  // Client to Server: Initiate connection with credentials and keep-alive settings.
@@ -53,15 +53,16 @@ enum class MqttPacketType : std::uint8_t
 };
 
 
-enum class MqttQos : std::uint8_t
+enum class Qos : std::uint8_t
 {
-    QoS0 = 0, // AtMostOnce  - Fire and forget (no acknowledgement)
-    QoS1 = 1, // AtLeastOnce - Acknowledged delivery (via PUBACK)
-    QoS2 = 2  // ExactlyOnce - Assured delivery (via 4-step handshake)
+    QoS0    = 0,   // AtMostOnce  - Fire and forget (no acknowledgement)
+    QoS1    = 1,   // AtLeastOnce - Acknowledged delivery (via PUBACK)
+    QoS2    = 2,   // ExactlyOnce - Assured delivery (via 4-step handshake)
+    Default = 0xFF // Use configured default QoS from mqtt::Config
 };
 
 
-enum class MqttConnectionState : std::uint8_t
+enum class ConnectionState : std::uint8_t
 {
     Disconnected = 0, // Session inactive; default initial state or after a clean exit.
     Connecting   = 1, // Socket is open, and CONNECT packet has been sent to the broker.
@@ -70,7 +71,7 @@ enum class MqttConnectionState : std::uint8_t
 };
 
 
-enum class MqttReasonCode : std::uint8_t {
+enum class ReasonCode : std::uint8_t {
     // --- Success Codes ( < 0x80 ) ---
     Success                 = 0x00, // Connection accepted / Publish acknowledged / Success.
     NormalDisconnection     = 0x00, // Clean disconnection initiated by client or server.

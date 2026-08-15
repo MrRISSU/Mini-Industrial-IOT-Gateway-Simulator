@@ -1,136 +1,163 @@
 
 /******************************************************************************
- * @file MQTT.hpp
- * @brief
+ * @file MQTTClient.hpp
+ * @brief MQTT 5.0 Client class declaration.
  *
  * Author : Huwairis Ibnu Kabeer
  * License: MIT
  ******************************************************************************/
 
-#ifndef MQTT_HPP
-#define MQTT_HPP
+#pragma once
 
 /*==========================================================================*/
 /* Includes                                                                 */
 /*==========================================================================*/
 
-/**
- * @file esp_transport.h
- * @brief Unified network transport abstraction layer for ESP-IDF.
- * 
- * WHY IT IS USED:
- * It decouples application logic (like HTTP or MQTT clients) from specific 
- * network protocols. This allows the same high-level code to send and receive 
- * data without worrying whether the underlying connection is raw TCP, 
- * secure TLS/SSL, or a WebSocket.
- * 
- * WHAT IT IS USED FOR:
- * - Providing standard API functions for connect, read, write, and close operations.
- * - Managing transport lists to easily switch between "http" and "https" schemes.
- * - Abstracting socket handles and handling underlying encryption seamlessly.
- */
-#include "esp_transport.h"
-
-/**
- * @file esp_transport_tcp.h
- * @brief TCP transport implementation for the ESP-IDF transport abstraction layer.
- * 
- * WHY IT IS USED:
- * It provides the concrete implementation for unencrypted, raw TCP socket 
- * communications. It plugs directly into the generic `esp_transport` interface 
- * so that higher-level clients can use standard TCP without managing raw 
- * BSD sockets manually.
- * 
- * WHAT IT IS USED FOR:
- * - Initializing and creating standard TCP transport handles (`esp_transport_tcp_init`).
- * - Setting core network parameters like destination IP, port, and interface names.
- * - Binding raw socket operations (connect, read, write, close) to the unified transport API.
- */
-#include "esp_transport_tcp.h"
-
-/**
- * @file esp_transport_ssl.h
- * @brief SSL/TLS transport implementation for the ESP-IDF transport abstraction layer.
- * 
- * WHY IT IS USED:
- * It adds a secure, encrypted layer (TLS/SSL) over raw TCP connections using mbedTLS. 
- * This allows higher-level clients (like HTTPS or secure MQTT) to communicate safely 
- * over the internet without needing to write complex, manual cryptographic handshake code.
- * 
- * WHAT IT IS USED FOR:
- * - Creating secure transport handles (`esp_transport_ssl_init`) for encrypted traffic.
- * - Configuring security credentials, including root certificates, client certificates, and private keys.
- * - Enabling features like ALPN (Application-Layer Protocol Negotiation), SNI (Server Name Indication), and PSK (Pre-Shared Keys).
- */
-#include "esp_transport_ssl.h"
-
-/**
- * @file esp_tls.h
- * @brief Simplified TLS/SSL wrapper layer for ESP-IDF.
- * 
- * WHY IT IS USED:
- * It acts as an easy-to-use, lightweight wrapper over the complex mbedTLS library. 
- * Instead of writing hundreds of lines of boilerplate code to handle handshakes, 
- * ciphersuites, and socket structures, it lets you establish a secure TLS 
- * connection with just a few function calls.
- * 
- * WHAT IT IS USED FOR:
- * - Opening secure connections directly using `esp_tls_conn_new_sync`.
- * - Configuring connection settings like certificates, timeouts, and SNI via `esp_tls_cfg_t`.
- * - Performing raw but secure network I/O (`esp_tls_conn_read` and `esp_tls_conn_write`).
- * - Fetching detailed TLS error codes for network debugging.
- */
-#include "esp_tls.h"
-
-// FreeRTOS components
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/queue.h"
-#include "freertos/timers.h"
-
-// C++ Standard & ETL (Embedded Template Library)
 #include <cstdint>
-#include <etl/string_view.h>
-#include <etl/unordered_map.h>
-#include <etl/array.h>
-// For zero-allocation callbacks
+#include <cstddef>
 #include <etl/delegate.h>
 
-/*==========================================================================*/
-/* Macros                                                                   */
-/*==========================================================================*/
-
-// Adjust MAX_PAYLOAD_SIZE based on your SRAM constraints
-constexpr size_t MAX_PAYLOAD_SIZE = 512; 
-constexpr size_t MAX_TOPIC_LENGTH = 64;
-
-/*==========================================================================*/
-/* Enumerations                                                             */
-/*==========================================================================*/
+#include "Transport.hpp"
+#include "MQTTConfig.hpp"
+#include "MQTTDecoder.hpp"
+#include "MQTTEncoder.hpp"
+#include "MQTTPacket.hpp"
+#include "MQTTTopic.hpp"
 
 /*==========================================================================*/
-/* Structures                                                               */
+/* Namespace                                                                */
 /*==========================================================================*/
 
-typedef struct MqttMessage
+namespace mqtt
 {
-    etl::array<char, MAX_TOPIC_LENGTH> topic;
-    etl::array<uint8_t, MAX_PAYLOAD_SIZE> payload;
-    size_t payload_length;
-    uint8_t qos;
-    bool retain;
-}mqttMessage_t;
 
 /*==========================================================================*/
-/* Configuration / Lookup Tables                                            */
+/* Type Definitions / Aliases                                                */
 /*==========================================================================*/
+
+/**
+ * @brief Delegate type for incoming PUBLISH message callbacks.
+ */
+using MessageCallback = etl::delegate<void(const char* topic, const std::uint8_t* payload, std::size_t payloadLen)>;
 
 /*==========================================================================*/
 /* Classes                                                                  */
 /*==========================================================================*/
 
-/*==========================================================================*/
-/* Public API                                                               */
-/*==========================================================================*/
+/**
+ * @brief Main MQTT 5.0 Client managing network lifecycle, publishing,
+ * subscribing, and incoming message handling over Transport.
+ */
+class Client
+{
+public:
+    Client();
+    ~Client();
 
-#endif
+    /**
+     * @brief Initialises client with network transport and configuration.
+     * @param transport Network stream abstraction instance.
+     * @param config Reference to runtime configuration (defaults to DefaultConf).
+     * @return true if initialised successfully.
+     */
+    bool Initialise(Transport& transport, Config& config = DefaultConf);
+
+    /**
+     * @brief Destroys client instance and closes connections.
+     * @return true if destroyed cleanly.
+     */
+    bool Destroy();
+
+    /**
+     * @brief Initiates MQTT 5.0 connection handshake with broker.
+     * @return true if connected successfully (CONNACK received with success).
+     */
+    bool Connect();
+
+    /**
+     * @brief Sends DISCONNECT packet and closes underlying network transport.
+     * @return true if disconnected cleanly.
+     */
+    bool Disconnect();
+
+    /**
+     * @brief Publishes a message to a specific topic.
+     * @param topic Destination topic string.
+     * @param payload Raw message payload bytes.
+     * @param payloadLen Length of payload in bytes.
+     * @param qos Quality of Service level (defaults to Qos::Default, resolving to config.defaultQos).
+     * @param retain Retain flag.
+     * @return true if publish succeeded.
+     */
+    bool Publish(const char* topic,
+                 const std::uint8_t* payload,
+                 std::size_t payloadLen,
+                 Qos qos = Qos::Default,
+                 bool retain = false);
+
+    /**
+     * @brief Subscribes to a topic filter.
+     * @param topicFilter Destination topic filter (may contain wildcards).
+     * @param qos Quality of Service level (defaults to Qos::Default, resolving to config.defaultQos).
+     * @return true if subscribe packet sent and SUBACK received successfully.
+     */
+    bool Subscribe(const char* topicFilter, Qos qos = Qos::Default);
+
+    /**
+     * @brief Unsubscribes from a topic filter.
+     * @param topicFilter Filter string to unsubscribe from.
+     * @return true if unsubscribe packet sent successfully.
+     */
+    bool Unsubscribe(const char* topicFilter);
+
+    /**
+     * @brief Transmits a PINGREQ packet to keep connection alive.
+     * @return true if ping request transmitted successfully.
+     */
+    bool Ping();
+
+    /**
+     * @brief Network loop to read and process incoming stream bytes from transport.
+     * @param timeoutMs Maximum read wait timeout in milliseconds.
+     * @return true if loop executed cleanly without critical transport error.
+     */
+    bool Loop(int timeoutMs = 100);
+
+    /**
+     * @brief Registers callback for incoming PUBLISH messages.
+     * @param cb Callback delegate instance.
+     */
+    void SetMessageCallback(MessageCallback cb);
+
+    /**
+     * @brief Gets current connection state.
+     * @return Current ConnectionState enum.
+     */
+    ConnectionState GetState() const;
+
+    /**
+     * @brief Checks if client is currently connected.
+     * @return true if connected.
+     */
+    bool IsConnected() const;
+
+private:
+    std::uint16_t GetNextPacketId();
+    Qos ResolveQos(Qos qos) const;
+
+    Transport* mpTransport_ = nullptr;
+    Config* mpConfig_ = nullptr;
+    Encoder encoder_;
+    Decoder decoder_;
+    ConnectionState state_ = ConnectionState::Disconnected;
+    std::uint16_t nextPacketId_ = 1;
+    MessageCallback messageCallback_;
+
+    etl::array<std::uint8_t, kMaxPacketSize> rxBuffer_;
+    std::size_t rxBufferLen_ = 0;
+};
+
+using MQTTClient = Client;
+
+} // namespace mqtt
+

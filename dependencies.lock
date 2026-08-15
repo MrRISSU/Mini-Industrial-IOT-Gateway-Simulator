@@ -1,0 +1,21 @@
+dependencies:
+  idf:
+    source:
+      type: idf
+    version: 6.0.2
+  marcel-cd/etlcpp:
+    component_hash: 23148f21750669aeca1bf4490e541867ca1760d089a31eeb619b2e56d426ccb8
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.0.1
+direct_dependencies:
+- idf
+- marcel-cd/etlcpp
+manifest_hash: 6dfba1ccb4e0e8677edf8d0753ecd9acf57d13e3a49c721887714529224ce730
+target: esp32
+version: 3.0.0

@@ -1,5 +1,5 @@
 idf_component_register(
     SRC_DIRS "src"
     INCLUDE_DIRS "include"
-    REQUIRES freertos esp_timer etl "Transport"
+    REQUIRES freertos esp_timer marcel-cd__etlcpp Transport
 )

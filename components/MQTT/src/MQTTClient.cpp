@@ -83,7 +83,7 @@ bool Client::Connect()
     // Build MQTT 5.0 CONNECT Packet
     Packet connectPacket;
     connectPacket.type = PacketType::CONNECT;
-    connectPacket.connectData.cleanStart = mpConfig_->isCleanStart;
+    connectPacket.connectData.isCleanStart = mpConfig_->isCleanStart;
     connectPacket.connectData.keepAliveSec = mpConfig_->keepAliveSec;
 
     // Client ID
@@ -152,7 +152,7 @@ bool Client::Connect()
     }
 
     // Write packet to Transport
-    if (!mpTransport_->Write(encoder_.GetBuffer().data(), encoder_.GetEncodedLength(), mpConfig_->timeoutMs))
+    if (!mpTransport_->Write(encoder_.GetBuffer(), encoder_.GetEncodedLength(), mpConfig_->timeoutMs))
     {
         mpTransport_->Disconnect();
         state_ = ConnectionState::Disconnected;
@@ -160,13 +160,14 @@ bool Client::Connect()
     }
 
     // Read CONNACK Response
-    std::size_t readBytes = 0;
-    if (!mpTransport_->Read(rxBuffer_.data(), kMaxPacketSize, readBytes, mpConfig_->timeoutMs))
+    int bytesRead = mpTransport_->Read(rxBuffer_.data(), kMaxPacketSize, mpConfig_->timeoutMs);
+    if (bytesRead <= 0)
     {
         mpTransport_->Disconnect();
         state_ = ConnectionState::Disconnected;
         return false;
     }
+    std::size_t readBytes = static_cast<std::size_t>(bytesRead);
 
     Packet responsePacket;
     if (!decoder_.Decode(rxBuffer_.data(), readBytes, responsePacket))
@@ -202,7 +203,7 @@ bool Client::Disconnect()
 
         if (encoder_.Encode(disconnectPacket))
         {
-            mpTransport_->Write(encoder_.GetBuffer().data(), encoder_.GetEncodedLength(), mpConfig_->timeoutMs);
+            mpTransport_->Write(encoder_.GetBuffer(), encoder_.GetEncodedLength(), mpConfig_->timeoutMs);
         }
     }
 
@@ -268,7 +269,7 @@ bool Client::Publish(const char* topic,
         return false;
     }
 
-    return mpTransport_->Write(encoder_.GetBuffer().data(), encoder_.GetEncodedLength(), mpConfig_->timeoutMs);
+    return mpTransport_->Write(encoder_.GetBuffer(), encoder_.GetEncodedLength(), mpConfig_->timeoutMs);
 }
 
 bool Client::Subscribe(const char* topicFilter, Qos qos)
@@ -299,28 +300,29 @@ bool Client::Subscribe(const char* topicFilter, Qos qos)
     }
     for (std::size_t i = 0; i < fLen; ++i)
     {
-        subPacket.subscribeData.filters[0].topic[i] = topicFilter[i];
+        subPacket.subscribeData.filters[0].topicFilter[i] = topicFilter[i];
     }
-    subPacket.subscribeData.filters[0].topic[fLen] = '\0';
-    subPacket.subscribeData.filters[0].topicLength = fLen;
-    subPacket.subscribeData.filters[0].requestedQos = actualQos;
+    subPacket.subscribeData.filters[0].topicFilter[fLen] = '\0';
+    subPacket.subscribeData.filters[0].topicFilterLen = fLen;
+    subPacket.subscribeData.filters[0].maxQos = actualQos;
 
     if (!encoder_.Encode(subPacket))
     {
         return false;
     }
 
-    if (!mpTransport_->Write(encoder_.GetBuffer().data(), encoder_.GetEncodedLength(), mpConfig_->timeoutMs))
+    if (!mpTransport_->Write(encoder_.GetBuffer(), encoder_.GetEncodedLength(), mpConfig_->timeoutMs))
     {
         return false;
     }
 
     // Read SUBACK Response
-    std::size_t readBytes = 0;
-    if (!mpTransport_->Read(rxBuffer_.data(), kMaxPacketSize, readBytes, mpConfig_->timeoutMs))
+    int bytesRead = mpTransport_->Read(rxBuffer_.data(), kMaxPacketSize, mpConfig_->timeoutMs);
+    if (bytesRead <= 0)
     {
         return false;
     }
+    std::size_t readBytes = static_cast<std::size_t>(bytesRead);
 
     Packet responsePacket;
     if (!decoder_.Decode(rxBuffer_.data(), readBytes, responsePacket))
@@ -365,7 +367,7 @@ bool Client::Unsubscribe(const char* topicFilter)
         return false;
     }
 
-    return mpTransport_->Write(encoder_.GetBuffer().data(), encoder_.GetEncodedLength(), mpConfig_->timeoutMs);
+    return mpTransport_->Write(encoder_.GetBuffer(), encoder_.GetEncodedLength(), mpConfig_->timeoutMs);
 }
 
 bool Client::Ping()
@@ -383,7 +385,7 @@ bool Client::Ping()
         return false;
     }
 
-    return mpTransport_->Write(encoder_.GetBuffer().data(), encoder_.GetEncodedLength(), mpConfig_->timeoutMs);
+    return mpTransport_->Write(encoder_.GetBuffer(), encoder_.GetEncodedLength(), mpConfig_->timeoutMs);
 }
 
 bool Client::Loop(int timeoutMs)
@@ -393,17 +395,14 @@ bool Client::Loop(int timeoutMs)
         return false;
     }
 
-    std::size_t readBytes = 0;
-    if (!mpTransport_->Read(rxBuffer_.data(), kMaxPacketSize, readBytes, timeoutMs))
+    int bytesRead = mpTransport_->Read(rxBuffer_.data(), kMaxPacketSize, timeoutMs);
+    if (bytesRead <= 0)
     {
         // No data read or timeout
         return true;
     }
 
-    if (readBytes == 0)
-    {
-        return true;
-    }
+    std::size_t readBytes = static_cast<std::size_t>(bytesRead);
 
     Packet rxPacket;
     if (!decoder_.Decode(rxBuffer_.data(), readBytes, rxPacket))
@@ -427,7 +426,7 @@ bool Client::Loop(int timeoutMs)
             pubackPacket.reason_code = ReasonCode::Success;
             if (encoder_.Encode(pubackPacket))
             {
-                mpTransport_->Write(encoder_.GetBuffer().data(), encoder_.GetEncodedLength(), mpConfig_->timeoutMs);
+                mpTransport_->Write(encoder_.GetBuffer(), encoder_.GetEncodedLength(), mpConfig_->timeoutMs);
             }
         }
     }

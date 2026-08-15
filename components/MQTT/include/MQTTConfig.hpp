@@ -103,7 +103,7 @@ struct Config
     bool isWillRetain;
 };
 
-using MQTTClientConf_t = MqttConfig;
+using MQTTClientConf_t = Config;
 
 /*==========================================================================*/
 /* Global Variables                                                         */
